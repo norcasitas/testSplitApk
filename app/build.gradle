@@ -1,0 +1,93 @@
+
+apply plugin:'com.android.application'
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion "25.0.0"
+    defaultConfig {
+        applicationId "com.nipereyra.testdisplay"
+        minSdkVersion 15
+        targetSdkVersion 25
+        versionCode 6
+        versionName "6.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        renderscriptTargetApi 19
+        renderscriptSupportModeEnabled true
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+
+    splits {
+
+        // Configures screen density split settings
+        density {
+            enable true
+            exclude "ldpi", "tvdpi", "xxxhdpi"
+            compatibleScreens 'small', 'normal', 'large', 'xlarge'
+        }
+        abi {
+            enable true
+            reset()
+            include 'armeabi-v7a', 'arm64-v8a'
+            universalApk true
+        }
+    }
+
+}
+
+dependencies {
+    compile fileTree(dir:'libs', include:['*.jar'])
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group:'com.android.support', module:'support-annotations'
+    })
+    compile 'com.joanzapata.pdfview:android-pdfview:1.0.4@aar'
+    compile 'com.android.support:appcompat-v7:24.2.1'
+    testCompile 'junit:junit:4.12'
+}
+
+
+// map for the version code
+project.ext.versionCodes = ['armeabi-v7a': 2, 'arm64-v8a': 3]
+
+project.ext.versionCodesDensities = ['hdpi': 1, 'mdpi': 2, 'xhdpi': 3, 'xxhdpi': 4]
+
+project.ext.additionalDensities = ['xhdpi': ['280'], 'xxhdpi': ['640', '560', '420', '400', '360']]
+import com.android.build.OutputFile
+
+android.applicationVariants.all { variant ->
+    // assign different version code for each output
+    variant.outputs.each { output ->
+        def abi = output.getFilter(com.android.build.OutputFile.ABI);
+
+        def abiFolder = abi ?  abi + File.separator + variant.buildType.name: variant.buildType.name
+        if (output.getFilter(OutputFile.DENSITY) != null && project.ext.additionalDensities.containsKey(output.getFilter(OutputFile.DENSITY))) {
+            output.processManifest.doFirst {
+                def manifestFile = new File(project.buildDir, "intermediates" + File.separator + "manifests" + File.separator + "density" + File.separator + output.getFilter(OutputFile.DENSITY)  +File.separator + abiFolder + File.separator + "AndroidManifest.xml")
+                def manifestText = manifestFile.text
+                for (String density : project.ext.additionalDensities.get(output.getFilter(OutputFile.DENSITY))) {
+                    manifestText = manifestText.replaceAll("</compatible-screens>", "<screen android:screenSize=\"small\" android:screenDensity=\"${density}\" />\n" +
+                        "<screen android:screenSize=\"large\" android:screenDensity=\"${density}\" />\n" +
+                        "<screen android:screenSize=\"xlarge\" android:screenDensity=\"${density}\" />\n" +
+                        "<screen android:screenSize=\"normal\" android:screenDensity=\"${density}\" />\n </compatible-screens>")
+                }
+                manifestFile.text = manifestText
+            }
+        }
+
+        def density = output.getFilter(com.android.build.OutputFile.DENSITY);
+        def abiCode = project.ext.versionCodes.get(abi, 0);
+        def densityCode = project.ext.versionCodesDensities.get(density, 0);
+
+        output.versionCodeOverride = (7000000 + (abiCode * 100000)
+            + densityCode * 10000
+            + android.defaultConfig.versionCode
+        );
+
+
+    }
+}
