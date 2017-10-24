@@ -2,17 +2,18 @@
 apply plugin:'com.android.application'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.0"
+    compileSdkVersion 26
+    buildToolsVersion "26.0.2"
     defaultConfig {
         applicationId "com.nipereyra.testdisplay"
         minSdkVersion 15
-        targetSdkVersion 25
+        targetSdkVersion 26
         versionCode 6
         versionName "6.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         renderscriptTargetApi 19
         renderscriptSupportModeEnabled true
+        resConfigs "es", "pt", "es_AR", "es_CO", "es_MX", "es_CL", "es_VE"
     }
     buildTypes {
         release {
@@ -45,8 +46,8 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group:'com.android.support', module:'support-annotations'
     })
-    compile 'com.joanzapata.pdfview:android-pdfview:1.0.4@aar'
-    compile 'com.android.support:appcompat-v7:24.2.1'
+
+    compile 'com.android.support:appcompat-v7:26.0.2'
     testCompile 'junit:junit:4.12'
 }
 
